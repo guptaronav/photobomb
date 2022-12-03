@@ -20,6 +20,7 @@ class Photobomb:
         self.buffer=250
         self.firstbg=pygame.image.load(r'firstbg.jpg').convert_alpha()
         self.secondbg=pygame.image.load(r'secondbg.jpeg').convert_alpha()
+        self.cameraoverlay=pygame.image.load(r'cameraoverlay.png').convert_alpha()
         self.chalkFont = pygame.font.Font('font/Chalkduster.ttf', 50)
         self.chalkFont2 = pygame.font.Font('font/Chalkduster.ttf', 22)
         self.chalkFont3 = pygame.font.Font('font/Chalkduster.ttf', 35)
@@ -89,6 +90,7 @@ class Photobomb:
         self.playButtonRectOutline = pygame.Rect(self.playButtonLoc, self.playButtonSize)
 
         self.selectedPlace=Places.Hawaii
+        self.thirdbg=pygame.image.load(r'hawaii.jpeg').convert_alpha()
         self.selectedVictim=Victims.Shubham
         self.state = 0
 
@@ -232,6 +234,7 @@ class Photobomb:
                         self.state = 1
                         return
             SCREEN.blit(self.thirdbg,(0,0))
+            SCREEN.blit(self.cameraoverlay,(0,0))
             # draw the start button
             #pygame.draw.rect(SCREEN, green, self.startButtonRect)
             #pygame.draw.rect(SCREEN, black, self.startButtonRectOutline, 2)
@@ -244,7 +247,7 @@ class Photobomb:
 if __name__ == "__main__":
     os.environ['SDL_VIDEO_CENTERED'] = '1'  # center SCREEN
     pygame.init()
-    pygame.display.set_caption("Photo Bomb")
+    pygame.display.set_caption("Photobomb")
     SCREEN = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     Runit = Photobomb()
     Myclock = pygame.time.Clock()
