@@ -9,6 +9,9 @@ pygame.display.set_caption("Photobomb")
 WIDTH = 1500
 HEIGHT = 900
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+FLASH=pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
+TIMER=6
+
 class Places(Enum):
     Hawaii, France, India = 1,2,3
 class Victims(Enum):
@@ -16,14 +19,18 @@ class Victims(Enum):
 class Photobomb:
     def __init__(self):
         self.buffer=250
+        self.frame=pygame.image.load(r'pictureFrame.png').convert_alpha()
         self.firstbg=pygame.image.load(r'firstbg.jpg').convert_alpha()
         self.secondbg=pygame.image.load(r'secondbg.jpeg').convert_alpha()
+        self.lastbg=pygame.image.load(r'finalbg.png').convert_alpha()
         self.cameraoverlay=pygame.image.load(r'cameraoverlay.png').convert_alpha()
         self.chalkFont = pygame.font.Font('font/Chalkduster.ttf', 50)
         self.chalkFont2 = pygame.font.Font('font/Chalkduster.ttf', 22)
         self.chalkFont3 = pygame.font.Font('font/Chalkduster.ttf', 35)
         self.font = pygame.font.Font('font/CoffeeTin.ttf', 150)
         self.font2 = pygame.font.Font('font/IndianPoker.ttf', 75)
+        self.font3 = pygame.font.Font('font/IndianPoker.ttf', 60)
+        self.scorefont = pygame.font.Font('font/SparkleFilled.ttf', 150)
         self.font2.set_bold(True)
         self.montserratFont=pygame.font.Font('font/Montserrat-Light.otf', 40)
         self.f1=pygame.image.load(r'People/France_people1.png').convert_alpha()
@@ -40,7 +47,9 @@ class Photobomb:
         self.rightcow=pygame.image.load(r'cowright.png').convert_alpha()
         self.startText = self.font2.render("Ready to Photobomb?", 1, (randcol()))
         self.startSize = self.font2.size("Ready to Photobomb?")
-        
+        self.timer=TIMER
+        self.cowrunning=False
+        FLASH.fill((255,255,255,32))
         self.placeText = self.chalkFont3.render("Choose your location: ", 1, (green))
         self.placeSize = self.chalkFont3.size("Choose your location: ")
         
@@ -78,12 +87,18 @@ class Photobomb:
         self.vic3Rect = pygame.Rect((self.vic3Loc[0]-30,self.vic3Loc[1]),(self.vic3Size[0]+30,self.vic3Size[1]))
         self.cameraUsernameLoc = (140*1500/WIDTH, HEIGHT - (130/900)*HEIGHT)
         self.cameraUsernameRect = pygame.Rect(self.cameraUsernameLoc, (200, 50))
+        
+        self.cowpos = (0,HEIGHT-460)
         self.start_up_init()
         
 
     def show_text(self, msg, x, y, color, size):
         tin = pygame.font.Font('font/IndianPoker.ttf', size)
         msgobj = tin.render(msg, False, color)
+        SCREEN.blit(msgobj, (x, y))
+        
+    def show_score(self, msg, x, y, color):
+        msgobj = self.scorefont.render(msg, False, color)
         SCREEN.blit(msgobj, (x, y))
 
     def start_up_init(self):
@@ -95,7 +110,7 @@ class Photobomb:
         self.startButtonRect = pygame.Rect(self.startButtonLoc, self.startButtonSize)
         self.startButtonRectOutline = pygame.Rect(self.startButtonLoc, self.startButtonSize)
         self.startLoc = (WIDTH/2 - self.startSize[0]/2, 100)
-        
+
         self.playButton = self.font2.render(" Play ", 1, black)
         self.playButtonSize = self.font2.size(" Play ")
         self.playButtonLoc = (WIDTH/2 - self.playButtonSize[0]/2, HEIGHT-self.buffer+20 - self.playButtonSize[1]/2)
@@ -107,7 +122,8 @@ class Photobomb:
         self.selectedVictim=Victims.Shubham
         self.userCamera = self.montserratFont.render(self.selectedVictim.name + "'s Camera", 1, (white))
         self.state = 0
-
+        self.score = 0
+        
     def main(self):
         if self.state == 0:
             self.show_splash_screen()
@@ -115,8 +131,8 @@ class Photobomb:
             self.select_loc_and_victim()
         elif self.state == 2:
              self.play()
-        else:
-             self.results()
+        elif self.state == 3:
+             self.show_results_screen()
 
     def show_splash_screen(self):
         global SCREEN, WIDTH, HEIGHT
@@ -163,14 +179,17 @@ class Photobomb:
                         self.selectedPlace=Places.Hawaii
                         self.thirdbg=pygame.image.load(r'hawaii.jpeg').convert_alpha()
                         self.people=[self.h1,self.h2,self.h3]  
+                        self.cowpos=(0,HEIGHT-460)
                     elif self.place2Rect.collidepoint(event.pos):
                         self.selectedPlace=Places.France
                         self.thirdbg=pygame.image.load(r'france.jpeg').convert_alpha()
                         self.people=[self.f1,self.f2,self.f3]
+                        self.cowpos=(0,HEIGHT-350)
                     elif self.place3Rect.collidepoint(event.pos):
                         self.selectedPlace=Places.India
                         self.thirdbg=pygame.image.load(r'india.jpeg').convert_alpha()
                         self.people=[self.i1,self.i2,self.i3]
+                        self.cowpos=(0,HEIGHT-350)
                         
                     if self.vic1Rect.collidepoint(event.pos):
                         self.selectedVictim=Victims.Shubham
@@ -182,7 +201,10 @@ class Photobomb:
                     self.person=random.choice(self.people)
                     if self.playButtonRect.collidepoint(event.pos):
                         self.state=2
-        
+                        self.timer=TIMER
+                        self.clock=pygame.time.Clock()
+                        
+        #Render Places and Victims
         SCREEN.blit(self.secondbg,(0,0))
         SCREEN.blit(self.placeText,(200,self.place1Loc[1]))
         SCREEN.blit(self.place1,self.place1Loc)
@@ -204,13 +226,7 @@ class Photobomb:
         pygame.draw.rect(SCREEN, black, self.playButtonRectOutline, 2)
         SCREEN.blit(self.playButton, self.playButtonLoc)
         
-        Photobomb.show_text(self,"Plan your vacation!",WIDTH/2-290,200,yellow,50)
-        # pygame.draw.rect(SCREEN, white, self.place1Rect)
-        # pygame.draw.rect(SCREEN, white, self.place2Rect)
-        # pygame.draw.rect(SCREEN, white, self.place3Rect)
-        # pygame.draw.rect(SCREEN, white, self.vic1Rect)
-        # pygame.draw.rect(SCREEN, white, self.vic2Rect)
-        # pygame.draw.rect(SCREEN, white, self.vic3Rect)
+        self.show_text("Plan your vacation!",WIDTH/2-290,200,yellow,50)
         
         match self.selectedPlace:
             case Places.Hawaii:
@@ -233,7 +249,7 @@ class Photobomb:
                 pygame.draw.circle(SCREEN, white, (self.vic3Loc[0] - 20, self.vic3Loc[1] + 22), 8)
                 
         pygame.display.flip()
-        
+            
     def play(self):
         global SCREEN, WIDTH, HEIGHT
         events = pygame.event.get()
@@ -246,19 +262,62 @@ class Photobomb:
                 WIDTH = event.w
                 HEIGHT = event.h
                 self.start_up_init()
-            # when the user clicks, release... the MOOOOOOOOOOOOO
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    mouseRect = pygame.Rect(event.pos, (1, 1))
+                    self.cowrunning=True
+                                    
         SCREEN.blit(self.thirdbg,(0,0))
         SCREEN.blit(self.person,(0,0))
-        SCREEN.blit(self.cameraoverlay,(0,0))
-        #SCREEN.blit(self.timer,(1400,800))
-        SCREEN.blit(self.userCamera, self.cameraUsernameLoc)
+        if self.cowrunning:
+            SCREEN.blit(self.rightcow,(self.cowpos))
+            self.cowpos=(self.cowpos[0]+10,self.cowpos[1])
+            self.score=(10-abs(self.cowpos[0]-WIDTH/2)*20/WIDTH)
+        self.timer = self.timer - self.clock.tick(30)/1000
+        if int(self.timer)!=0:
+            SCREEN.blit(self.cameraoverlay,(0,0))
+            SCREEN.blit(self.userCamera, self.cameraUsernameLoc)
+            SCREEN.blit(self.montserratFont.render(str(int(self.timer)), 1, (black)),(1380,70))
+        else:
+            SCREEN.blit(FLASH,(0,0))
+            time.sleep(1)
+            pygame.image.save(SCREEN,"out/screenshot.jpg")
+            self.screenshot=pygame.image.load(r'out/screenshot.jpg').convert()
+            self.screenshot=pygame.transform.scale(self.screenshot,(600,340))
+            self.state=3
         pygame.display.flip()
-            
+        
+    def show_results_screen(self):
+        global SCREEN, WIDTH, HEIGHT
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.VIDEORESIZE:
+                SCREEN = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                WIDTH = event.w
+                HEIGHT = event.h
+                self.start_up_init()
+                
+        SCREEN.blit(self.lastbg,(0,0))
+        SCREEN.blit(self.screenshot,(215,183))
+        SCREEN.blit(self.frame,(100,100))
+        result=round(self.score*10)
+        final = str(result)
+        if result<50:
+            verdict="You are a decent photobomber."
+        elif 50<result<90:
+            verdict="You are a great photobomber!"
+        else:
+            verdict="You are a tremendous photobomber!!!"
+        self.show_score(final,1000,300,white)
+        self.show_text("percent",1100,420,white,40)
+        scoreSize = self.font3.size(verdict)
+        self.show_text(verdict,(WIDTH/2)-(scoreSize[0]/2),HEIGHT-230,green,60)
+        #self.show_text()
+        
+        pygame.display.flip()
 
-    
 #############################################################
 if __name__ == "__main__":
     os.environ['SDL_VIDEO_CENTERED'] = '1'  # center SCREEN
