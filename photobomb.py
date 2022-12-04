@@ -9,7 +9,6 @@ pygame.display.set_caption("Photobomb")
 WIDTH = 1500
 HEIGHT = 900
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-
 class Places(Enum):
     Hawaii, France, India = 1,2,3
 class Victims(Enum):
@@ -26,6 +25,7 @@ class Photobomb:
         self.font = pygame.font.Font('font/CoffeeTin.ttf', 150)
         self.font2 = pygame.font.Font('font/IndianPoker.ttf', 75)
         self.font2.set_bold(True)
+        self.montserratFont=pygame.font.Font('font/Montserrat-Light.otf', 40)
         self.f1=pygame.image.load(r'People/France_people1.png').convert_alpha()
         self.f2=pygame.image.load(r'People/France_people2.png').convert_alpha()
         self.f3=pygame.image.load(r'People/France_people3.png').convert_alpha()
@@ -38,7 +38,6 @@ class Photobomb:
         self.people=[self.h1,self.h2,self.h3]
         self.leftcow=pygame.image.load(r'cowleft.png').convert_alpha()
         self.rightcow=pygame.image.load(r'cowright.png').convert_alpha()
-        
         self.startText = self.font2.render("Ready to Photobomb?", 1, (randcol()))
         self.startSize = self.font2.size("Ready to Photobomb?")
         
@@ -77,6 +76,8 @@ class Photobomb:
         self.vic3Size = self.chalkFont3.size(Victims.Pronamee.name)
         self.vic3Loc = (1200, self.buffer + 200)
         self.vic3Rect = pygame.Rect((self.vic3Loc[0]-30,self.vic3Loc[1]),(self.vic3Size[0]+30,self.vic3Size[1]))
+        self.cameraUsernameLoc = (140*1500/WIDTH, HEIGHT - (130/900)*HEIGHT)
+        self.cameraUsernameRect = pygame.Rect(self.cameraUsernameLoc, (200, 50))
         self.start_up_init()
         
 
@@ -104,6 +105,7 @@ class Photobomb:
         self.selectedPlace=Places.Hawaii
         self.thirdbg=pygame.image.load(r'hawaii.jpeg').convert_alpha()
         self.selectedVictim=Victims.Shubham
+        self.userCamera = self.montserratFont.render(self.selectedVictim.name + "'s Camera", 1, (white))
         self.state = 0
 
     def main(self):
@@ -176,7 +178,7 @@ class Photobomb:
                         self.selectedVictim=Victims.Robert
                     elif self.vic3Rect.collidepoint(event.pos):
                         self.selectedVictim=Victims.Pronamee
-                        
+                    self.userCamera = self.montserratFont.render(self.selectedVictim.name + "'s Camera", 1, (white))
                     self.person=random.choice(self.people)
                     if self.playButtonRect.collidepoint(event.pos):
                         self.state=2
@@ -248,13 +250,13 @@ class Photobomb:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouseRect = pygame.Rect(event.pos, (1, 1))
-                    if mouseRect.colliderect(self.startButtonRect):
-                        self.state = 1
-                        return
-            SCREEN.blit(self.thirdbg,(0,0))
-            SCREEN.blit(self.person,(0,0))
-            SCREEN.blit(self.cameraoverlay,(0,0))
-            pygame.display.flip()
+        SCREEN.blit(self.thirdbg,(0,0))
+        SCREEN.blit(self.person,(0,0))
+        SCREEN.blit(self.cameraoverlay,(0,0))
+        #SCREEN.blit(self.timer,(1400,800))
+        SCREEN.blit(self.userCamera, self.cameraUsernameLoc)
+        pygame.display.flip()
+            
 
     
 #############################################################
