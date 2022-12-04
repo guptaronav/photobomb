@@ -3,7 +3,6 @@ import os
 import sys
 import pygame
 import math, time, random
-import random
 from enum import Enum
 from pygame.locals import *
 pygame.display.set_caption("Photobomb")
@@ -27,6 +26,19 @@ class Photobomb:
         self.font = pygame.font.Font('font/CoffeeTin.ttf', 150)
         self.font2 = pygame.font.Font('font/IndianPoker.ttf', 75)
         self.font2.set_bold(True)
+        self.f1=pygame.image.load(r'People/France_people1.png').convert_alpha()
+        self.f2=pygame.image.load(r'People/France_people2.png').convert_alpha()
+        self.f3=pygame.image.load(r'People/France_people3.png').convert_alpha()
+        self.h1=pygame.image.load(r'People/Hawaii_people1.png').convert_alpha()
+        self.h2=pygame.image.load(r'People/Hawaii_people2.png').convert_alpha()
+        self.h3=pygame.image.load(r'People/Hawaii_people3.png').convert_alpha()
+        self.i1=pygame.image.load(r'People/India_people1.png').convert_alpha()
+        self.i2=pygame.image.load(r'People/India_people2.png').convert_alpha()
+        self.i3=pygame.image.load(r'People/India_people3.png').convert_alpha()
+        self.people=[self.h1,self.h2,self.h3]
+        self.leftcow=pygame.image.load(r'cowleft.png').convert_alpha()
+        self.rightcow=pygame.image.load(r'cowright.png').convert_alpha()
+        
         self.startText = self.font2.render("Ready to Photobomb?", 1, (randcol()))
         self.startSize = self.font2.size("Ready to Photobomb?")
         
@@ -142,24 +154,30 @@ class Photobomb:
                 SCREEN = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
                 WIDTH = event.w
                 HEIGHT = event.h
-            # when the user chooses the info change to the playing state
+            # when the user chooses the info, change to the playing state
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if self.place1Rect.collidepoint(event.pos):
                         self.selectedPlace=Places.Hawaii
                         self.thirdbg=pygame.image.load(r'hawaii.jpeg').convert_alpha()
-                    if self.place2Rect.collidepoint(event.pos):
+                        self.people=[self.h1,self.h2,self.h3]  
+                    elif self.place2Rect.collidepoint(event.pos):
                         self.selectedPlace=Places.France
                         self.thirdbg=pygame.image.load(r'france.jpeg').convert_alpha()
-                    if self.place3Rect.collidepoint(event.pos):
+                        self.people=[self.f1,self.f2,self.f3]
+                    elif self.place3Rect.collidepoint(event.pos):
                         self.selectedPlace=Places.India
                         self.thirdbg=pygame.image.load(r'india.jpeg').convert_alpha()
+                        self.people=[self.i1,self.i2,self.i3]
+                        
                     if self.vic1Rect.collidepoint(event.pos):
                         self.selectedVictim=Victims.Shubham
-                    if self.vic2Rect.collidepoint(event.pos):
+                    elif self.vic2Rect.collidepoint(event.pos):
                         self.selectedVictim=Victims.Robert
-                    if self.vic3Rect.collidepoint(event.pos):
+                    elif self.vic3Rect.collidepoint(event.pos):
                         self.selectedVictim=Victims.Pronamee
+                        
+                    self.person=random.choice(self.people)
                     if self.playButtonRect.collidepoint(event.pos):
                         self.state=2
         
@@ -234,12 +252,8 @@ class Photobomb:
                         self.state = 1
                         return
             SCREEN.blit(self.thirdbg,(0,0))
+            SCREEN.blit(self.person,(0,0))
             SCREEN.blit(self.cameraoverlay,(0,0))
-            # draw the start button
-            #pygame.draw.rect(SCREEN, green, self.startButtonRect)
-            #pygame.draw.rect(SCREEN, black, self.startButtonRectOutline, 2)
-            #SCREEN.blit(self.startButton, self.startButtonLoc)
-            #SCREEN.blit(self.startText, self.startLoc)
             pygame.display.flip()
 
     
